@@ -334,7 +334,7 @@ function App() {
           </table>
         </div>
         <div style={{ margin: "12px 0" }}>
-          <em>(Now tracks Breakfast, Lunch, and Dinner for every person, every day.)</em>
+          <em>(Tanvir Tareq app)</em>
         </div>
       </div>
 
