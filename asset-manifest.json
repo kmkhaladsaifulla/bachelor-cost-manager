@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/bachelor-cost-manager/static/css/main.e6c13ad2.css",
+    "main.js": "/bachelor-cost-manager/static/js/main.60177caa.js",
+    "static/js/453.7ccfefd1.chunk.js": "/bachelor-cost-manager/static/js/453.7ccfefd1.chunk.js",
+    "index.html": "/bachelor-cost-manager/index.html",
+    "main.e6c13ad2.css.map": "/bachelor-cost-manager/static/css/main.e6c13ad2.css.map",
+    "main.60177caa.js.map": "/bachelor-cost-manager/static/js/main.60177caa.js.map",
+    "453.7ccfefd1.chunk.js.map": "/bachelor-cost-manager/static/js/453.7ccfefd1.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.e6c13ad2.css",
+    "static/js/main.60177caa.js"
+  ]
+}
