@@ -16,17 +16,15 @@ function blankMeals(residents) {
   for (let d = 1; d <= 31; d++) {
     m[d] = {};
     residents.forEach((name) => {
-      m[d][name] = { Lunch: 0, Dinner: 0 };
+      m[d][name] = { Breakfast: 0, Lunch: 0, Dinner: 0 };
     });
   }
   return m;
 }
 
 function App() {
-  // Start in view-only mode
   const [isManager, setIsManager] = useState(false);
   const [passwordAttempt, setPasswordAttempt] = useState("");
-  // Change month/year as needed
   const [year, setYear] = useState(2025);
   const [month, setMonth] = useState(10);
   const actualMonthDays = getMonthDays(year, month);
@@ -51,13 +49,11 @@ function App() {
     });
   }, []);
 
-  // Save to Firebase and update state
   async function saveData(newData) {
     await setDoc(DATA_DOC, newData);
     setData(newData);
   }
 
-  // Add/remove residents
   function addResident() {
     if (!nameInput.trim() || data.residents.includes(nameInput.trim())) return;
     const newResidents = [...data.residents, nameInput.trim()];
@@ -71,7 +67,6 @@ function App() {
     saveData({ ...data, residents: newResidents, meals: newMeals });
   }
 
-  // Contributions
   function addContribution() {
     if (!contributor.trim() || !amount || !contributionDate) return;
     const newContributions = [
@@ -86,7 +81,6 @@ function App() {
     saveData({ ...data, contributions: newContributions });
   }
 
-  // Groceries
   function addGrocery() {
     if (!groceryDesc.trim() || !groceryAmount || !groceryDate) return;
     const newGroceries = [
@@ -101,11 +95,10 @@ function App() {
     saveData({ ...data, groceries: newGroceries });
   }
 
-  // Meals
   function handleMealChange(name, day, mealType, value) {
     const mealsCopy = JSON.parse(JSON.stringify(data.meals));
     if (!mealsCopy[day]) mealsCopy[day] = {};
-    if (!mealsCopy[day][name]) mealsCopy[day][name] = { Lunch: 0, Dinner: 0 };
+    if (!mealsCopy[day][name]) mealsCopy[day][name] = { Breakfast: 0, Lunch: 0, Dinner: 0 };
     mealsCopy[day][name][mealType] = Number(value) || 0;
     saveData({ ...data, meals: mealsCopy });
   }
@@ -113,7 +106,6 @@ function App() {
     return data.meals?.[day]?.[name]?.[mealType] ?? 0;
   }
 
-  // Compute meal counts and totals for actualMonthDays only
   const totalGroceries = data.groceries.reduce((a, b) => a + b.amount, 0);
   const totalContributed = data.contributions.reduce((a, b) => a + b.amount, 0);
 
@@ -122,6 +114,7 @@ function App() {
     meals: Array.from({ length: actualMonthDays }).reduce((total, _, i) => {
       const day = i + 1;
       return total +
+        (data.meals[day]?.[name]?.Breakfast || 0) +
         (data.meals[day]?.[name]?.Lunch || 0) +
         (data.meals[day]?.[name]?.Dinner || 0);
     }, 0)
@@ -130,7 +123,7 @@ function App() {
   const costPerMeal = totalMeals ? totalGroceries / totalMeals : 0;
 
   return (
-    <div style={{ fontFamily: "sans-serif", maxWidth: 1400, margin: "auto", padding: 24, background: "#fefefe" }}>
+    <div style={{ fontFamily: "sans-serif", maxWidth: 1500, margin: "auto", padding: 24, background: "#fefefe" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <h2 style={{ marginBottom: 4 }}>Bachelor Cost Manager</h2>
         <span style={{ fontWeight: "bold", color: isManager ? "#27ac27" : "#888" }}>
@@ -162,7 +155,6 @@ function App() {
           Switch to View Only
         </button>
       )}
-
       {/* Residents */}
       <div style={{ background: "#e6ffe6", padding: 18, borderRadius: 8, marginBottom: 16 }}>
         <h3>Residents for the Month</h3>
@@ -285,15 +277,16 @@ function App() {
         </div>
       </div>
 
-      {/* Meals Table */}
+      {/* Meals Table with Breakfast */}
       <div style={{ background: "#fffbe6", padding: 18, borderRadius: 8, marginBottom: 16 }}>
-        <h3>Meals Table (Day-wise, always 31 days editable)</h3>
+        <h3>Meals Table (includes Breakfast)</h3>
         <div style={{ overflowX: "auto", maxWidth: "100%" }}>
-          <table style={{ borderCollapse: "collapse", minWidth: data.residents.length * 160 + 120 }}>
+          <table style={{ borderCollapse: "collapse", minWidth: data.residents.length * 220 + 120 }}>
             <thead>
               <tr style={{ background: "#f0e8d4" }}>
                 <th>Date</th>
                 {data.residents.map(name => [
+                  <th key={name + "-B"}>{name} Breakfast</th>,
                   <th key={name + "-L"}>{name} Lunch</th>,
                   <th key={name + "-D"}>{name} Dinner</th>
                 ])}
@@ -306,30 +299,31 @@ function App() {
                   <tr key={day}>
                     <td style={{ border: "1px solid #ddd", padding: "2px 6px", fontWeight: "bold" }}>{day}</td>
                     {data.residents.map(name => [
-                      <td key={name + "-L-" + day} style={{ border: "1px solid #ddd", padding: "2px 6px" }}>
+                      <td key={name+"-B-"+day} style={{ border: '1px solid #ddd', padding: '2px 6px' }}>
                         {isManager ?
-                          <input
-                            type="number"
-                            min="0"
-                            max="10"
+                          <input type="number" min="0" max="10"
+                            value={getMealInput(name, day, "Breakfast")}
+                            onChange={e => handleMealChange(name, day, "Breakfast", e.target.value)}
+                            style={{ width: 40 }} />
+                          : <span>{getMealInput(name, day, "Breakfast")}</span>
+                        }
+                      </td>,
+                      <td key={name+"-L-"+day} style={{ border: '1px solid #ddd', padding: '2px 6px' }}>
+                        {isManager ?
+                          <input type="number" min="0" max="10"
                             value={getMealInput(name, day, "Lunch")}
                             onChange={e => handleMealChange(name, day, "Lunch", e.target.value)}
                             style={{ width: 40 }} />
-                          :
-                          <span>{getMealInput(name, day, "Lunch")}</span>
+                          : <span>{getMealInput(name, day, "Lunch")}</span>
                         }
                       </td>,
-                      <td key={name + "-D-" + day} style={{ border: "1px solid #ddd", padding: "2px 6px" }}>
+                      <td key={name+"-D-"+day} style={{ border: '1px solid #ddd', padding: '2px 6px' }}>
                         {isManager ?
-                          <input
-                            type="number"
-                            min="0"
-                            max="10"
+                          <input type="number" min="0" max="10"
                             value={getMealInput(name, day, "Dinner")}
                             onChange={e => handleMealChange(name, day, "Dinner", e.target.value)}
                             style={{ width: 40 }} />
-                          :
-                          <span>{getMealInput(name, day, "Dinner")}</span>
+                          : <span>{getMealInput(name, day, "Dinner")}</span>
                         }
                       </td>
                     ])}
@@ -340,9 +334,7 @@ function App() {
           </table>
         </div>
         <div style={{ margin: "12px 0" }}>
-          <em>
-            (Rows = Day. <br />Columns = Person Lunch/Dinner input for each day. All 31 days are editable, totals use only actual days in selected month.)
-          </em>
+          <em>(Now tracks Breakfast, Lunch, and Dinner for every person, every day.)</em>
         </div>
       </div>
 
